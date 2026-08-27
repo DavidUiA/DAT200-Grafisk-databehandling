@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/webstorm-icon-logo.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>oppg2</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main id="app">
+    <form>
+        <label for="n">Antall punkter</label>
+        <input type="number" id="n" value="16" min="1" max="256" oninput="draw()">
+
+        <label for="k">x til kx</label>
+        <input type="number" id="k" value="2" min="1" max="256" step="any" oninput="draw()">
+
+        <label for="a">Additive/Multiplactive</label>
+        <input type="checkbox" id="a" oninput="draw()">
+    </form>
+  <canvas id="oppg1Canvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
+  <p>David Alexander Danielsen</p>
+  <a href="index.html">gå til oppgave 2</a>
+</main>
+<script type="module" src="/src/oppg2.ts"></script>
+</body>
+</html>

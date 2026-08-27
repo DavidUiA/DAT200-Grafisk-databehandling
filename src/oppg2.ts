@@ -1,10 +1,16 @@
 {
-    const canvas = document.getElementById('oppg2Canvas') as HTMLCanvasElement;
-    const CIRCLE_RADIUS = 10
+    const canvas = document.getElementById('oppg1Canvas') as HTMLCanvasElement;
+    const nInput = document.getElementById('n') as HTMLInputElement;
+    const kInput = document.getElementById('k') as HTMLInputElement;
+    const aInput = document.getElementById('a') as HTMLInputElement;
 
-    let strikkX = 300
-    let strikkY = 300
-    let isDragging = false;
+    const π = Math.PI
+    const CIRCLE_RADIUS = 255
+    const circleCenter = 300;
+    let n = nInput.valueAsNumber;
+    let k = kInput.valueAsNumber;
+    let additive = false // use additive to approximate a circle. use multiplacitive to make the coffecup light art (if you shine light at an angle into a coffee cup)
+
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     draw()
 
@@ -12,68 +18,49 @@
         ctx.fillStyle = 'yellow';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.fillStyle = 'red';
-        ctx.beginPath();
-        ctx.moveTo(150, 150);
-        ctx.lineTo(450, 150);
-        ctx.lineTo(450, 450);
-        ctx.lineTo(150, 450);
-        ctx.closePath();
-        ctx.fill();
-
         ctx.fillStyle = 'black';
-        ctx.moveTo(150, 300);
-        ctx.lineTo(strikkX, strikkY);
+        ctx.beginPath();
+        if (!additive) ctx.arc(circleCenter, circleCenter, CIRCLE_RADIUS, 0, 2*π) // sirkel
         ctx.stroke()
-        ctx.moveTo(450, 300);
-        ctx.lineTo(strikkX, strikkY);
+
+        for (let i = 0; i < n; i++) { // drawer k linjer med θ fordelt fra 0-2π
+            drawLine((i / n) * 2 * π);
+        }
+    }
+
+    function drawLine(θ: number) { // lager ei linje mellom θ og ω = θ * kx
+        const x0 = CIRCLE_RADIUS * Math.cos(θ) + circleCenter;
+        const y0 = CIRCLE_RADIUS * Math.sin(θ) + circleCenter;
+        ctx.beginPath();
+        ctx.moveTo(x0, y0);
+
+        let ω: number
+        if (additive) {
+            ω = θ + (k / n) * 2 * π; // add k steps
+        } else {
+            ω = θ * k;
+        }
+
+        const x1 = CIRCLE_RADIUS * Math.cos(ω) + circleCenter;
+        const y1 = CIRCLE_RADIUS * Math.sin(ω) + circleCenter;
+        ctx.lineTo(x1, y1);
         ctx.stroke();
-
-        ctx.arc(strikkX, strikkY, CIRCLE_RADIUS, 0, 2*Math.PI)
-        ctx.stroke()
+        ctx.closePath();
     }
 
-    canvas.addEventListener("mousemove", function (e) {
-        handleMouse(e.clientX, e.clientY, false)
+
+
+    nInput.addEventListener('input', () => {
+        n = nInput.valueAsNumber;
+        kInput.max = n.toString()
         draw()
-    }, false);
-
-    function handleMouse(clientX: number, clientY: number, isClick: boolean, clickToggle: boolean = false) {
-        let mouseX = clientX - canvas.offsetLeft
-        let mouseY = clientY - canvas.offsetTop;
-        let distX = mouseX - strikkX
-        let distY = mouseY - strikkY
-        let dist = Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2));
-
-        if (isDragging) {
-            strikkX = mouseX
-            strikkY = mouseY
-        }
-
-        if (dist < CIRCLE_RADIUS) {
-            if (isClick) {
-                if (clickToggle) {
-                    canvas.style.cursor = 'grabbing'
-                    isDragging = true
-                } else {
-                    canvas.style.cursor = 'pointer'
-                    isDragging = false
-                    strikkX = 300;
-                    strikkY = 300;
-                }
-            } else if (!isDragging) {
-                canvas.style.cursor = 'pointer'
-            }
-        } else if (!isDragging) {
-            canvas.style.cursor = 'default'
-        }
-    }
-
-    canvas.addEventListener("mousedown", function (e) {
-        handleMouse(e.clientX, e.clientY, true, true)
-    }, false);
-
-    canvas.addEventListener("mouseup", function (e) {
-        handleMouse(e.clientX, e.clientY, true, false)
-    }, false);
+    })
+    kInput.addEventListener('input', () => {
+        k = kInput.valueAsNumber;
+        draw()
+    });
+    aInput.addEventListener('input', () => {
+        additive = aInput.checked;
+        draw();
+    });
 }
