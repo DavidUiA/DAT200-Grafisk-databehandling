@@ -58,6 +58,8 @@
                 } else {
                     canvas.style.cursor = 'pointer'
                     isDragging = false
+                    strikkX = 300;
+                    strikkY = 300;
                 }
             } else if (!isDragging) {
                 canvas.style.cursor = 'pointer'
