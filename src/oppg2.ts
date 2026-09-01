@@ -63,4 +63,25 @@
         additive = aInput.checked;
         draw();
     });
+
+    class Vector {
+        constructor(
+            public x: number,
+            public y: number,
+        ) {}
+
+        added(other: Vector) {
+            return new Vector(this.x + other.x, this.y + other.y);
+        }
+
+        subtracted(other: Vector) {
+            return new Vector(this.x - other.x, this.y - other.y);
+        }
+
+        scaled(center: Vector, scale: Vector) {
+            let relPos = this.subtracted(center)
+
+            return new Vector(this.x + other.x, this.y + other.y);
+        }
+    }
 }
