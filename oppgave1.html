@@ -10,15 +10,15 @@
 <body>
 <main id="app">
     <form>
-        <label for="n">Antall punkter</label>
-        <input type="number" id="n" value="16" min="1" max="256" oninput="draw()">
-
-        <label for="k">x til kx</label>
-        <input type="number" id="k" value="2" min="1" max="256" step="any" oninput="draw()">
-
-        <label for="a">Additive/Multiplactive</label>
-        <input type="checkbox" id="a" oninput="draw()">
+        <label for="oper">transformasjonstype</label>
+        <select id="oper">
+            <option>nytt polygon</option>
+            <option>translasjon</option>
+            <option>rotasjon</option>
+            <option>skaléring</option>
+        </select>
     </form>
+    <button id="undo">Angre</button>
   <canvas id="oppg1Canvas" width="600" height="600" style="border:1px solid #d3d3d3;"></canvas>
   <p>David Alexander Danielsen</p>
   <a href="index.html">gå til oppgave 2</a>
