@@ -1,14 +1,8 @@
 {
     const canvas = document.getElementById('oppg1Canvas') as HTMLCanvasElement;
-    const nInput = document.getElementById('n') as HTMLInputElement;
-    const kInput = document.getElementById('k') as HTMLInputElement;
-    const aInput = document.getElementById('a') as HTMLInputElement;
 
     const π = Math.PI
-    const CIRCLE_RADIUS = 255
     const circleCenter = 300;
-    let n = nInput.valueAsNumber;
-    let k = kInput.valueAsNumber;
     let additive = false // use additive to approximate a circle. use multiplacitive to make the coffecup light art (if you shine light at an angle into a coffee cup)
 
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -48,22 +42,6 @@
         ctx.closePath();
     }
 
-
-
-    nInput.addEventListener('input', () => {
-        n = nInput.valueAsNumber;
-        kInput.max = n.toString()
-        draw()
-    })
-    kInput.addEventListener('input', () => {
-        k = kInput.valueAsNumber;
-        draw()
-    });
-    aInput.addEventListener('input', () => {
-        additive = aInput.checked;
-        draw();
-    });
-
     class Vector {
         constructor(
             public x: number,
@@ -78,10 +56,22 @@
             return new Vector(this.x - other.x, this.y - other.y);
         }
 
-        scaled(center: Vector, scale: Vector) {
-            let relPos = this.subtracted(center)
-
-            return new Vector(this.x + other.x, this.y + other.y);
+        scaled(scale: Vector) {
+            return new Vector(this.x * scale.x, this.y + scale.y);
         }
+
+        transformed(matrix: Matrix) {
+            let newX = this.x * matrix.xVec.x + this.y * matrix.yVec.x;
+            let newY = this.x * matrix.xVec.y + this.y * matrix.yVec.y;
+
+            return new Vector(newX, newY);
+        }
+    }
+
+    class Matrix {
+        constructor(
+            public xVec: Vector,
+            public yVec: Vector,
+        ) {}
     }
 }
