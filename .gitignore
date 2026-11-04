@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+/assignment_8.zip
+/assignment_9.zip
+/test.html
