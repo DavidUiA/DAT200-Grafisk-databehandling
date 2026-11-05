@@ -40,7 +40,9 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         sunLight.castShadow = true;
         scene.add(sunLight);
 
-        let blade: THREE.Object3D | undefined;
+        let aksling: THREE.Object3D | undefined;
+        let blader: (THREE.Object3D | undefined)[] = [];
+        let seiler: (THREE.Object3D | undefined)[] = [];
         let bladeAngle = 0;
 
         const loader = new GLTFLoader();
@@ -49,14 +51,19 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
             // called when the resource is loaded
             (gltf: GLTF) => {
                 scene.add(gltf.scene);
-                blade = gltf.scene.getObjectByName("blad")
-                if (blade) blade.rotation.order = 'ZYX';
-                console.log("blad:", blade)
-                //gltf.animations; // Array<THREE.AnimationClip>
-                //gltf.scene; // THREE.Group
-                //gltf.scenes; // Array<THREE.Group>
-                //gltf.cameras; // Array<THREE.Camera>
-                //gltf.asset; // Object
+                let blad = gltf.scene.getObjectByName("blad")
+                blader.push(blad)
+                let blad1 = blad?.clone()
+                blad1?.rotateX(2*Math.PI/3);
+                let blad2 = blad?.clone()
+                blad2?.rotateX(4*Math.PI/3);
+                blader.push(blad1, blad2)
+
+                let seil = gltf.scene.getObjectByName("seil")
+                seiler.push(seil, blad1?.getObjectByName("seil"), blad2?.getObjectByName("seil"))
+                if (blad1) scene.add(blad1)
+                if (blad2) scene.add(blad2)
+                aksling = gltf.scene.getObjectByName("aksling")
             },
             // called while loading is progressing
             (xhr: ProgressEvent) => {
@@ -121,7 +128,7 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 
         const gui = new GUI();
         gui.add(rotationControls, 'bladeω', 0, 2*Math.PI);
-        gui.add(rotationControls, 'tilt', -45, 45);
+        gui.add(rotationControls, 'tilt', -90, 90);
 
 
         const stats = initStats()
@@ -131,10 +138,16 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
             stats.update()
             controls.update(timer.getDelta());
 
-            bladeAngle += rotationControls.bladeω * timer.getDelta();
-            if (blade) {
-                blade?.rotation.set(bladeAngle, 0, THREE.MathUtils.degToRad(rotationControls.tilt));
+            let radianTilt = THREE.MathUtils.degToRad(rotationControls.tilt);
+            if (bladeAngle + 0.01 < radianTilt) {
+                bladeAngle += 5 * timer.getDelta();
+                seiler.forEach(it => it?.rotateX(5 * timer.getDelta()))
+            } else if (bladeAngle - 0.01 > radianTilt) {
+                bladeAngle -= 5 * timer.getDelta();
+                seiler.forEach(it => it?.rotateX(-5 * timer.getDelta()))
             }
+            blader.forEach(it => it?.rotateX(-rotationControls.bladeω * timer.getDelta()))
+            aksling?.rotateY(-rotationControls.bladeω * timer.getDelta())
 
             renderer.render(scene, camera)
         });
