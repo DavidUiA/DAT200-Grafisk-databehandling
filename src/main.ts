@@ -25,14 +25,7 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         const controls = new OrbitControls(camera, renderer.domElement);
         const timer = new THREE.Timer()
 
-        let spotLight = new THREE.SpotLight(0xccffcc);
-        spotLight.position.set(0, 4, 0);
-        spotLight.intensity = 10;
-        spotLight.castShadow = true;
-        scene.add(spotLight);
-
-        const ambiColor = "#0c0c0c";
-        const ambientLight = new THREE.AmbientLight(ambiColor);
+        const ambientLight = new THREE.AmbientLight(0xe0f0ff, 0.5);
         scene.add(ambientLight);
 
         const sunLight = new THREE.DirectionalLight(0xffffff, 2);
