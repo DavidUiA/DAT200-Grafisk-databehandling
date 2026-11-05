@@ -28,7 +28,7 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         const ambientLight = new THREE.AmbientLight(0xe0f0ff, 0.5);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xffffff, 2);
+        const sunLight = new THREE.DirectionalLight(0xffeedd, 2);
         sunLight.position.set(-10, 20, 10); // direction = vec(this, origo)
         sunLight.castShadow = true;
         scene.add(sunLight);
@@ -44,6 +44,14 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
             // called when the resource is loaded
             (gltf: GLTF) => {
                 scene.add(gltf.scene);
+                const colors: Record<string, number> = { aksling: 0x555555, seil: 0xeeeedd, stang: 0x8b5a2b, stangholder: 0x555555, tak: 0x8b2222, topp: 0xddccaa, tårn: 0xddccaa };
+                gltf.scene.traverse(obj => {
+                    if (obj instanceof THREE.Mesh) {
+                        obj.material = new THREE.MeshStandardMaterial({ color: colors[obj.name] })
+                        obj.castShadow = true
+                        obj.receiveShadow = true
+                    }
+                });
                 let blad = gltf.scene.getObjectByName("blad")
                 blader.push(blad)
                 let blad1 = blad?.clone()
@@ -97,7 +105,7 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         ] );
         pyramidGeometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) ); // itemsize 3 fordi xyz 3 akser
         pyramidGeometry.computeVertexNormals()
-        const pyramidMaterial = new THREE.MeshLambertMaterial({color: 0x44ffcc})
+        const pyramidMaterial = new THREE.MeshLambertMaterial({color: 0x77dd91})
         const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
         scene.add(pyramid);
 
@@ -107,7 +115,11 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         const grid = new THREE.GridHelper(10, 4)
         scene.add(grid);
 
-        spotLight.castShadow = true;
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshStandardMaterial({ color: 0x2e8a45 }));
+        ground.rotation.x = -Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
         pyramid.castShadow = true;
         grid.receiveShadow = true;
 
