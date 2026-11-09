@@ -34,17 +34,17 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         scene.add(sunLight);
 
         let aksling: THREE.Object3D | undefined;
-        let blader: (THREE.Object3D | undefined)[] = [];
+        let belter: (THREE.Object3D | undefined)[] = [];
         let seiler: (THREE.Object3D | undefined)[] = [];
         let bladeAngle = 0;
 
         const loader = new GLTFLoader();
 
-        loader.load("vindmølle.glb",
+        loader.load("gravemaskin.glb",
             // called when the resource is loaded
             (gltf: GLTF) => {
                 scene.add(gltf.scene);
-                const colors: Record<string, number> = { aksling: 0x555555, seil: 0xeeeedd, stang: 0x8b5a2b, stangholder: 0x555555, tak: 0x8b2222, topp: 0xddccaa, tårn: 0xddccaa };
+                const colors: Record<string, number> = { belte: 0x555555, kjøring: 0xeeeedd, motorboks: 0x8b5a2b, ledd1: 0x555555, ledd2: 0x8b2222, ledd3: 0xddccaa, spade: 0xddccaa };
                 gltf.scene.traverse(obj => {
                     if (obj instanceof THREE.Mesh) {
                         obj.material = new THREE.MeshStandardMaterial({ color: colors[obj.name] })
@@ -52,27 +52,21 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
                         obj.receiveShadow = true
                     }
                 });
-                let blad = gltf.scene.getObjectByName("blad")
-                blader.push(blad)
-                let blad1 = blad?.clone()
-                blad1?.rotateX(2*Math.PI/3);
-                let blad2 = blad?.clone()
-                blad2?.rotateX(4*Math.PI/3);
-                blader.push(blad1, blad2)
+                let belte = gltf.scene.getObjectByName("belte")
+                belter.push(belte)
+                let belte1 = belte?.clone()
+                belte1?.rotateZ(2*Math.PI/3);
+                let belte2 = belte?.clone()
+                belte2?.rotateZ(4*Math.PI/3);
+                belter.push(belte1, belte2)
 
-                let seil = gltf.scene.getObjectByName("seil")
-                seiler.push(seil, blad1?.getObjectByName("seil"), blad2?.getObjectByName("seil"))
-                if (blad1) scene.add(blad1)
-                if (blad2) scene.add(blad2)
-                aksling = gltf.scene.getObjectByName("aksling")
+                if (belte1) scene.add(belte1)
+                if (belte2) scene.add(belte2)
+                aksling = gltf.scene.getObjectByName("motorboks")
             },
             // called while loading is progressing
             (xhr: ProgressEvent) => {
                 console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-            },
-            // called when loading has errors
-            (error: unknown) => {
-                console.error("An error happened", error);
             }
         );
 
@@ -151,7 +145,7 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
                 bladeAngle -= 5 * timer.getDelta();
                 seiler.forEach(it => it?.rotateX(-5 * timer.getDelta()))
             }
-            blader.forEach(it => it?.rotateX(-rotationControls.bladeω * timer.getDelta()))
+            belter.forEach(it => it?.rotateZ(-rotationControls.bladeω * timer.getDelta()))
             aksling?.rotateY(-rotationControls.bladeω * timer.getDelta())
 
             renderer.render(scene, camera)
