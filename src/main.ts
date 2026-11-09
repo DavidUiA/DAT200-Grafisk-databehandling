@@ -4,6 +4,36 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import GUI from "three/addons/libs/lil-gui.module.min.js";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 {
+    class BelteSeksjon {
+        private progress: number = 0;
+        private factor = 1.4
+
+        constructor(public belte: THREE.Object3D<THREE.Object3DEventMap>, progress: number = 0) {
+            this.progress = progress;
+        }
+
+        tick(addedProgress: number) {
+            this.progress += addedProgress;
+            if (this.progress < 0) {
+                this.progress += 2 * this.factor*Math.PI + 32
+            } else if (this.progress <= 16) {
+                this.belte.position.x = this.progress - 8;
+            } else if (this.progress <= 16 + this.factor*Math.PI) {
+                this.belte.position.x = 8;
+                this.belte.rotation.z = -(this.progress - 16)/this.factor
+            } else if (this.progress <= 32 + this.factor*Math.PI) {
+                this.belte.rotation.z = -Math.PI;
+                this.belte.position.x = 24 + this.factor*Math.PI - this.progress;
+            } else if (this.progress <= 32 + 2*this.factor*Math.PI) {
+                this.belte.position.x = -8;
+                this.belte.rotation.z = (this.factor*2*Math.PI - (this.progress - 32))/this.factor;
+            } else if (this.progress > 0) {
+                this.progress -= 2 * this.factor*Math.PI + 32
+            }
+        }
+    }
+
+
     const renderDiv = document.getElementById('threejs') as HTMLDivElement;
 
 
@@ -34,8 +64,8 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         scene.add(sunLight);
 
         let aksling: THREE.Object3D | undefined;
-        let belter: (THREE.Object3D | undefined)[] = [];
-        let seiler: (THREE.Object3D | undefined)[] = [];
+        let belter: BelteSeksjon[] = [];
+        let belter2: BelteSeksjon[] = [];
         let bladeAngle = 0;
 
         const loader = new GLTFLoader();
@@ -53,15 +83,20 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
                     }
                 });
                 let belte = gltf.scene.getObjectByName("belte")
-                belter.push(belte)
-                let belte1 = belte?.clone()
-                belte1?.rotateZ(2*Math.PI/3);
-                let belte2 = belte?.clone()
-                belte2?.rotateZ(4*Math.PI/3);
-                belter.push(belte1, belte2)
-
-                if (belte1) scene.add(belte1)
-                if (belte2) scene.add(belte2)
+                if (belte) belte.visible = false;
+                for (let j = 0; j < 2; j++) {
+                    for (let i = 0; i < 20; i++) {
+                        let belte1 = belte?.clone()
+                        if (belte1) {
+                            belte1.visible = true;
+                            scene.add(belte1)
+                            if (j==1) {
+                                belte1.position.z *= -1
+                                belter.push(new BelteSeksjon(belte1, 2*i*(21/20)))
+                            } else belter2.push(new BelteSeksjon(belte1, 2*i*(21/20)))
+                        }
+                    }
+                }
                 aksling = gltf.scene.getObjectByName("motorboks")
             },
             // called while loading is progressing
@@ -136,16 +171,16 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
             timer.update(time);
             stats.update()
             controls.update(timer.getDelta());
+            belter.forEach(seksjon => seksjon.tick(timer.getDelta() * 5))
+            belter2.forEach(seksjon => seksjon.tick(timer.getDelta() * -5))
 
             let radianTilt = THREE.MathUtils.degToRad(rotationControls.tilt);
             if (bladeAngle + 0.01 < radianTilt) {
                 bladeAngle += 5 * timer.getDelta();
-                seiler.forEach(it => it?.rotateX(5 * timer.getDelta()))
             } else if (bladeAngle - 0.01 > radianTilt) {
                 bladeAngle -= 5 * timer.getDelta();
-                seiler.forEach(it => it?.rotateX(-5 * timer.getDelta()))
             }
-            belter.forEach(it => it?.rotateZ(-rotationControls.bladeω * timer.getDelta()))
+            //belter.forEach(it => it?.rotateZ(-rotationControls.bladeω * timer.getDelta()))
             aksling?.rotateY(-rotationControls.bladeω * timer.getDelta())
 
             renderer.render(scene, camera)
