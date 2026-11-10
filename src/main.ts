@@ -199,6 +199,12 @@ import { Vector3 } from 'three';
                 rotasjon -= 4/3 * timer.getDelta();
                 gravemaskin.rotateY(-4/3 * timer.getDelta());
             }
+            if (keys.has('e')) {
+                motorboks?.rotateY((4/3 * timer.getDelta()))
+            }
+            if (keys.has('q')) {
+                motorboks?.rotateY((-4/3 * timer.getDelta()))
+            }
             belts.setMovement(leftSpeed, rightSpeed);
             gravemaskin.position.add(
                 new Vector3(
