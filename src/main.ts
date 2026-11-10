@@ -3,7 +3,10 @@ import Stats from "three/addons/libs/stats.module.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import GUI from "three/addons/libs/lil-gui.module.min.js";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
+import { Vector3 } from 'three';
 {
+    const speed = 8
+
     class BelteSeksjon {
         private progress: number = 0;
         private factor = 1.4
@@ -30,6 +33,23 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
             } else if (this.progress > 0) {
                 this.progress -= 2 * this.factor*Math.PI + 32
             }
+        }
+    }
+
+    class Belter {
+        constructor(
+            private leftBelts: BelteSeksjon[],
+            private rightBelts: BelteSeksjon[],
+            private timer: THREE.Timer
+        ) {}
+
+        setMovement(left: number, right: number) {
+            this.leftBelts.forEach((seksjon) =>
+                seksjon.tick(left * this.timer.getDelta() * speed),
+            );
+            this.rightBelts.forEach((seksjon) =>
+                seksjon.tick(right * this.timer.getDelta() * speed),
+            );
         }
     }
 
@@ -63,17 +83,30 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         sunLight.castShadow = true;
         scene.add(sunLight);
 
-        let aksling: THREE.Object3D | undefined;
-        let belter: BelteSeksjon[] = [];
-        let belter2: BelteSeksjon[] = [];
-        let bladeAngle = 0;
+        let gravemaskin: THREE.Group = new THREE.Group();
+        let motorboks: THREE.Object3D | undefined;
+        let venstreBelter: BelteSeksjon[] = [];
+        let høyreBelter: BelteSeksjon[] = [];
+        let rotasjon = Math.PI/2;
+        let belts: Belter
+
+        const keys = new Set<string>();
+        window.addEventListener('keydown', (e) =>
+          keys.add(e.key.toLowerCase()),
+        );
+        window.addEventListener('keyup', (e) =>
+          keys.delete(e.key.toLowerCase()),
+        );
+        window.addEventListener('blur', () => keys.clear()); // if you alttab out, it will release the keys
 
         const loader = new GLTFLoader();
 
         loader.load("gravemaskin.glb",
             // called when the resource is loaded
             (gltf: GLTF) => {
-                scene.add(gltf.scene);
+                gravemaskin.add(gltf.scene);
+                scene.add(gravemaskin);
+                gltf.scene.castShadow = true;
                 const colors: Record<string, number> = { belte: 0x555555, kjøring: 0xeeeedd, motorboks: 0x8b5a2b, ledd1: 0x555555, ledd2: 0x8b2222, ledd3: 0xddccaa, spade: 0xddccaa };
                 gltf.scene.traverse(obj => {
                     if (obj instanceof THREE.Mesh) {
@@ -89,54 +122,22 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
                         let belte1 = belte?.clone()
                         if (belte1) {
                             belte1.visible = true;
-                            scene.add(belte1)
+                            gravemaskin.add(belte1);
                             if (j==1) {
                                 belte1.position.z *= -1
-                                belter.push(new BelteSeksjon(belte1, 2*i*(21/20)))
-                            } else belter2.push(new BelteSeksjon(belte1, 2*i*(21/20)))
+                                venstreBelter.push(new BelteSeksjon(belte1, 2*i*(21/20)))
+                            } else høyreBelter.push(new BelteSeksjon(belte1, 2*i*(21/20)))
                         }
                     }
                 }
-                aksling = gltf.scene.getObjectByName("motorboks")
+                belts = new Belter(venstreBelter, høyreBelter, timer)
+                motorboks = gltf.scene.getObjectByName("motorboks")
             },
             // called while loading is progressing
             (xhr: ProgressEvent) => {
                 console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
             }
         );
-
-        const pyramidGeometry = new THREE.BufferGeometry();
-        const vertices = new Float32Array( [ // pyramide med kvadrat under
-            // bunnkvadrat del1
-             1.0, 0.0,  1.0,
-            -1.0, 0.0,  1.0,
-             1.0, 0.0, -1.0,
-            // bunnkvadrat del2
-             1.0, 0.0, -1.0,
-            -1.0, 0.0,  1.0,
-            -1.0, 0.0, -1.0,
-            // vegg 1
-            1.0, 0.0,  1.0,
-            1.0, 0.0, -1.0,
-            0.0, 2.0,  0.0,
-            // vegg 2
-            -1.0, 0.0, 1.0,
-             1.0, 0.0, 1.0,
-             0.0, 2.0, 0.0,
-            // vegg 3
-            -1.0, 0.0, -1.0,
-            -1.0, 0.0,  1.0,
-             0.0, 2.0,  0.0,
-            // vegg 4
-             1.0, 0.0, -1.0,
-            -1.0, 0.0, -1.0,
-             0.0, 2.0,  0.0,
-        ] );
-        pyramidGeometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) ); // itemsize 3 fordi xyz 3 akser
-        pyramidGeometry.computeVertexNormals()
-        const pyramidMaterial = new THREE.MeshLambertMaterial({color: 0x77dd91})
-        const pyramid = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
-        scene.add(pyramid);
 
         const axes = new THREE.AxesHelper(5);
         scene.add(axes);
@@ -149,7 +150,6 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
         ground.receiveShadow = true;
         scene.add(ground);
 
-        pyramid.castShadow = true;
         grid.receiveShadow = true;
 
         camera.position.set(1, 4, 3);
@@ -171,17 +171,42 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
             timer.update(time);
             stats.update()
             controls.update(timer.getDelta());
-            belter.forEach(seksjon => seksjon.tick(timer.getDelta() * 5))
-            belter2.forEach(seksjon => seksjon.tick(timer.getDelta() * -5))
+            motorboks?.rotateY(-rotationControls.bladeω * timer.getDelta())
 
-            let radianTilt = THREE.MathUtils.degToRad(rotationControls.tilt);
-            if (bladeAngle + 0.01 < radianTilt) {
-                bladeAngle += 5 * timer.getDelta();
-            } else if (bladeAngle - 0.01 > radianTilt) {
-                bladeAngle -= 5 * timer.getDelta();
+            let rightSpeed = 0;
+            let leftSpeed = 0;
+            let forwardSpeed = 0
+
+            if (keys.has("w")) {
+                rightSpeed += 1;
+                leftSpeed += 1;
+                forwardSpeed = 1;
             }
-            //belter.forEach(it => it?.rotateZ(-rotationControls.bladeω * timer.getDelta()))
-            aksling?.rotateY(-rotationControls.bladeω * timer.getDelta())
+            if (keys.has('a')) {
+                rightSpeed += 1;
+                leftSpeed -= 1;
+                rotasjon += 4/3 * timer.getDelta();
+                gravemaskin.rotateY(4/3 * timer.getDelta());
+            }
+            if (keys.has('s')) {
+                rightSpeed -= 1;
+                leftSpeed -= 1;
+                forwardSpeed = -1;
+            }
+            if (keys.has('d')) {
+                rightSpeed -= 1;
+                leftSpeed += 1;
+                rotasjon -= 4/3 * timer.getDelta();
+                gravemaskin.rotateY(-4/3 * timer.getDelta());
+            }
+            belts.setMovement(leftSpeed, rightSpeed);
+            gravemaskin.position.add(
+                new Vector3(
+                    forwardSpeed * speed * Math.sin(rotasjon) * timer.getDelta(),
+                    0,
+                    forwardSpeed * speed * Math.cos(rotasjon) * timer.getDelta(),
+                ),
+            );
 
             renderer.render(scene, camera)
         });
