@@ -79,8 +79,19 @@ import { Vector3 } from 'three';
         scene.add(ambientLight);
 
         const sunLight = new THREE.DirectionalLight(0xffeedd, 2);
-        sunLight.position.set(-10, 20, 10); // direction = vec(this, origo)
+        sunLight.position.set(-50, 100, 50); // direction = vec(this, origo)
         sunLight.castShadow = true;
+
+        // fix sun shadowing
+        const shadowCam = sunLight.shadow.camera; //
+        shadowCam.left = -70;
+        shadowCam.right = 70;
+        shadowCam.top = 70;
+        shadowCam.bottom = -70;
+        shadowCam.near = 1;
+        shadowCam.far = 200;
+        shadowCam.updateProjectionMatrix();
+        sunLight.shadow.mapSize.set(4096, 4096);
         scene.add(sunLight);
 
         let gravemaskin: THREE.Group = new THREE.Group();
