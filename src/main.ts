@@ -64,7 +64,7 @@ import { Vector3 } from 'three';
         let scene = new THREE.Scene()
         const renderer = new THREE.WebGPURenderer({ antialias: true });
         renderer.setClearColor(new THREE.Color(0x444444));
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight - 70);
         renderer.shadowMap.enabled = true;
 
         renderDiv.appendChild(renderer.domElement);
@@ -85,6 +85,10 @@ import { Vector3 } from 'three';
 
         let gravemaskin: THREE.Group = new THREE.Group();
         let motorboks: THREE.Object3D | undefined;
+        let arm1: THREE.Object3D | undefined;
+        let arm2: THREE.Object3D | undefined;
+        let arm3: THREE.Object3D | undefined;
+        let spade: THREE.Object3D | undefined;
         let venstreBelter: BelteSeksjon[] = [];
         let høyreBelter: BelteSeksjon[] = [];
         let rotasjon = Math.PI/2;
@@ -116,6 +120,10 @@ import { Vector3 } from 'three';
                     }
                 });
                 let belte = gltf.scene.getObjectByName("belte")
+                arm1 = gltf.scene.getObjectByName("ledd1")
+                arm2 = gltf.scene.getObjectByName("ledd2")
+                arm3 = gltf.scene.getObjectByName("ledd3")
+                spade = gltf.scene.getObjectByName("spade")
                 if (belte) belte.visible = false;
                 for (let j = 0; j < 2; j++) {
                     for (let i = 0; i < 20; i++) {
@@ -139,21 +147,23 @@ import { Vector3 } from 'three';
             }
         );
 
+        gravemaskin.position.y = 3
+
         const axes = new THREE.AxesHelper(5);
         scene.add(axes);
 
         const grid = new THREE.GridHelper(10, 4)
         scene.add(grid);
 
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshStandardMaterial({ color: 0x2e8a45 }));
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x2e8a45 }));
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
         scene.add(ground);
 
         grid.receiveShadow = true;
 
-        camera.position.set(1, 4, 3);
-        camera.lookAt(0, 0, 0);
+        camera.position.set(50, 50, 50);
+        camera.lookAt(gravemaskin.position)
 
         const rotationControls = {
             bladeω: 0.0,
@@ -199,12 +209,17 @@ import { Vector3 } from 'three';
                 rotasjon -= 4/3 * timer.getDelta();
                 gravemaskin.rotateY(-4/3 * timer.getDelta());
             }
-            if (keys.has('e')) {
-                motorboks?.rotateY((4/3 * timer.getDelta()))
-            }
-            if (keys.has('q')) {
-                motorboks?.rotateY((-4/3 * timer.getDelta()))
-            }
+            if (keys.has('q')) motorboks?.rotateY((4/3 * timer.getDelta()))
+            if (keys.has('e')) motorboks?.rotateY((-4/3 * timer.getDelta()))
+
+            if (keys.has('o')) arm1?.rotateY(timer.getDelta())
+            if (keys.has('l')) arm1?.rotateY(-timer.getDelta())
+            if (keys.has('p')) arm2?.rotateY(timer.getDelta())
+            if (keys.has('ø')) arm2?.rotateY(-timer.getDelta())
+            if (keys.has('å')) arm3?.rotateY(timer.getDelta())
+            if (keys.has('æ')) arm3?.rotateY(-timer.getDelta())
+            if (keys.has('arrowup')) spade?.rotateY(2*timer.getDelta())
+            if (keys.has('arrowdown')) spade?.rotateY(-2*timer.getDelta())
             belts.setMovement(leftSpeed, rightSpeed);
             gravemaskin.position.add(
                 new Vector3(
