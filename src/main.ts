@@ -1,7 +1,6 @@
 import * as THREE from 'three/webgpu';
 import Stats from "three/addons/libs/stats.module.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import GUI from "three/addons/libs/lil-gui.module.min.js";
 import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { Vector3 } from 'three';
 {
@@ -176,23 +175,12 @@ import { Vector3 } from 'three';
         camera.position.set(50, 50, 50);
         camera.lookAt(gravemaskin.position)
 
-        const rotationControls = {
-            bladeω: 0.0,
-            tilt: 0.0,
-        };
-
-        const gui = new GUI();
-        gui.add(rotationControls, 'bladeω', 0, 2*Math.PI);
-        gui.add(rotationControls, 'tilt', -90, 90);
-
-
         const stats = initStats()
 
         await renderer.setAnimationLoop((time) => {
             timer.update(time);
             stats.update()
             controls.update(timer.getDelta());
-            motorboks?.rotateY(-rotationControls.bladeω * timer.getDelta())
 
             let rightSpeed = 0;
             let leftSpeed = 0;
